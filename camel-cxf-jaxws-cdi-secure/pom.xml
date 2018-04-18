@@ -34,6 +34,10 @@
 	<artifactId>example-camel-cxf-jaxws-cdi-secure</artifactId>
 	<packaging>war</packaging>
 
+    <properties>
+        <cli.infix></cli.infix>
+    </properties>
+
 	<dependencies>
 
 		<!-- Provided -->
@@ -88,7 +92,7 @@
 						</goals>
 						<configuration>
 							<scripts>
-								<script>${project.basedir}/src/main/resources/cli/configure-tls-security.cli</script>
+								<script>${project.basedir}/src/main/resources/cli/configure-tls-security${cli.infix}.cli</script>
 							</scripts>
 						</configuration>
 					</execution>
