@@ -1,0 +1,41 @@
+
+# key-store
+/subsystem=elytron/key-store=httpsKS:add(path="application.keystore",relative-to=jboss.server.config.dir,credential-reference={clear-text=password},type=JKS)
+# key-manager
+/subsystem=elytron/key-manager=httpsKM:add(key-store=httpsKS,credential-reference={clear-text=password})
+# trust-store
+/subsystem=elytron/key-store=httpsTS:add(path="application.keystore",relative-to=jboss.server.config.dir,credential-reference={clear-text=password},type=JKS)
+# trust-manager
+/subsystem=elytron/trust-manager=httpsTM:add(key-store=httpsTS)
+# server-ssl-context
+# ,need-client-auth=true
+/subsystem=elytron/server-ssl-context=httpsSSC:add(key-manager=httpsKM,protocols=["TLSv1.2"],trust-manager=httpsTM,want-client-auth=true)
+# Undertow auf Elytron SSL umschalten
+/subsystem=undertow/server=default-server/https-listener=https:remove()
+/subsystem=undertow/server=default-server/https-listener=https:add(socket-binding=https,ssl-context=httpsSSC,enable-http2=true)
+#/subsystem=undertow/server=default-server/https-listener=https:undefine-attribute(name=security-realm)
+#/subsystem=undertow/server=default-server/https-listener=https:write-attribute(name=ssl-context,value=httpsSSC)
+
+/subsystem=elytron/key-store-realm=keyStoreRealm:add(key-store=httpsTS)
+
+# Realm für Login mit Client-Zertifikat
+/subsystem=elytron/aggregate-realm=clientCertRealm/:add(authentication-realm=keyStoreRealm,authorization-realm=ApplicationRealm)
+
+/subsystem=elytron/constant-realm-mapper=clientCertRealmMapper:add(realm-name=clientCertRealm)
+# der Wert des 1. Segments des vollen DN muss dem Alias im Truststore für das Zertifikat des Clients entsprechen
+#/subsystem=elytron/x500-attribute-principal-decoder=CNDecoder:add(oid="2.5.4.3",maximum-segments=1)
+# oder
+/subsystem=elytron/x500-attribute-principal-decoder=CNDecoder:add(attribute-name=CN, maximum-segments=1)
+
+/subsystem=elytron/security-domain=client-cert:add(default-realm=clientCertRealm,permission-mapper=default-permission-mapper,principal-decoder=CNDecoder,realms=[{realm=clientCertRealm,role-decoder=groups-to-roles}])
+
+# HTTP Authentifizierungs Mechanismen konfigurieren
+/subsystem=elytron/http-authentication-factory=application-http-authentication-client-cert:add( \
+    security-domain=client-cert, \
+    http-server-mechanism-factory=global, \
+    mechanism-configurations=[{ \
+      mechanism-name=CLIENT_CERT \
+    }])
+
+/subsystem=undertow/application-security-domain=client-cert:add(http-authentication-factory=application-http-authentication-client-cert)
+#/subsystem=undertow/server=default-server/https-listener=https/:write-attribute(name="verify-client",value="REQUESTED")

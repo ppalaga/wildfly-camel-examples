@@ -111,11 +111,11 @@
 						<phase>clean</phase>
 						<goals>
 							<goal>execute-commands</goal>
-						</goals>						
+						</goals>
 						<configuration>
 							<scripts>
 								<script>${project.basedir}/src/main/resources/cli/remove-tls-security.cli</script>
-							</scripts>                            
+							</scripts>
                         </configuration>
 					</execution>
 				</executions>
