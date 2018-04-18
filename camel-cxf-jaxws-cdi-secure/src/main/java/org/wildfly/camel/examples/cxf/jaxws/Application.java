@@ -47,9 +47,13 @@ import org.apache.cxf.interceptor.security.JAASLoginInterceptor;
 import org.apache.cxf.interceptor.security.SimpleAuthorizingInterceptor;
 import org.apache.cxf.interceptor.security.callback.CallbackHandlerProvider;
 import org.apache.cxf.message.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named("cxf_cdi_security_app")
 public class Application {
+
+    private static final Logger log = LoggerFactory.getLogger(Application.class);
 
     private static final String CXF_PRODUCER_ENDPOINT_ADDRESS = "https://localhost:8443/webservices/greeting-secure-cdi";
     private static final String CXF_CONSUMER_ENDPOINT_ADDRESS = "https://localhost:8443/webservices/greeting-secure-cdi";
@@ -87,6 +91,7 @@ public class Application {
         HostnameVerifier hostnameVerifier = new HostnameVerifier() {
             @Override
             public boolean verify(String hostname, SSLSession session) {
+                log.warn("=== hostname = "+ hostname);
                 return true;
             }
         };
