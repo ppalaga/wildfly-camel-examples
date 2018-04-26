@@ -31,10 +31,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.cdi.ContextName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 @WebServlet(name = "HttpServiceServlet", urlPatterns = { "/cxf/*" }, loadOnStartup = 1)
 public class CamelCxfWsServlet extends HttpServlet {
+    private static final Logger LOG = LoggerFactory.getLogger(CamelCxfWsServlet.class);
 
     @Inject
     @ContextName("cxfws-secure-cdi-camel-context")
@@ -42,6 +45,7 @@ public class CamelCxfWsServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        LOG.error("=== index.jsp", new RuntimeException());
         request.getRequestDispatcher("/index.jsp").forward(request, response);
     }
 

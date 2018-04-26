@@ -20,14 +20,20 @@ package org.wildfly.camel.examples.cxf.jaxws;
 
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
+import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.UnsupportedCallbackException;
 
 import org.apache.cxf.interceptor.security.callback.CallbackHandlerProvider;
 import org.apache.cxf.interceptor.security.callback.CertificateToNameMapper;
 import org.apache.cxf.message.Message;
+import org.apache.cxf.security.SecurityContext;
 import org.apache.cxf.security.transport.TLSSessionInfo;
 import org.jboss.security.auth.callback.UsernamePasswordHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Copy of <code>org.apache.cxf.interceptor.security.callback.CallbackHandlerTlsCert</code> that returns a
@@ -35,6 +41,7 @@ import org.jboss.security.auth.callback.UsernamePasswordHandler;
  */
 public class JBossCallbackHandlerTlsCert implements CallbackHandlerProvider {
 
+    private static final Logger log = LoggerFactory.getLogger(JBossCallbackHandlerTlsCert.class);
     private CertificateToNameMapper certMapper;
 
     public JBossCallbackHandlerTlsCert() {
@@ -50,13 +57,25 @@ public class JBossCallbackHandlerTlsCert implements CallbackHandlerProvider {
 
     @Override
     public CallbackHandler create(Message message) {
+        log.warn("create() for message = "+ message);
+        log.warn("security context = "+ message.get(SecurityContext.class));
         TLSSessionInfo tlsSession = message.get(TLSSessionInfo.class);
+        log.error("create() for tlsSession = "+ tlsSession, new RuntimeException());
         if (tlsSession == null) {
             return null;
         }
         Certificate cert = getCertificate(message);
         String name = certMapper.getUserName(cert);
-        return new UsernamePasswordHandler(name, cert);
+        log.warn("new UsernamePasswordHandler("+ name +", "+ cert +")");
+        return new UsernamePasswordHandler(name, cert) {
+
+            @Override
+            public void handle(Callback[] callbacks) throws UnsupportedCallbackException {
+                log.error("handle() calbacks = "+ Arrays.toString(callbacks), new RuntimeException());
+                super.handle(callbacks);
+            }
+
+        };
     }
 
     /**
